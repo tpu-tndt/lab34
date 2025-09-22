@@ -16,7 +16,7 @@
 
         body {
             font-family: Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #1a1a2e;
             color: white;
             overflow: hidden;
             position: fixed;
@@ -44,7 +44,8 @@
         .joystick-container {
             width: 150px;
             height: 150px;
-            background: rgba(255, 255, 255, 0.2);
+            background: #0f3460;
+            border: 2px solid #16213e;
             border-radius: 50%;
             position: relative;
             touch-action: none;
@@ -53,20 +54,21 @@
         .joystick {
             width: 60px;
             height: 60px;
-            background: white;
+            background: #e94560;
             border-radius: 50%;
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
             transition: none;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.5);
         }
 
         .slider-container {
             display: flex;
             align-items: center;
             gap: 10px;
+            color: #eee;
         }
 
         .slider {
@@ -74,7 +76,7 @@
             -webkit-appearance: none;
             appearance: none;
             height: 6px;
-            background: rgba(255, 255, 255, 0.3);
+            background: #0f3460;
             outline: none;
             border-radius: 3px;
         }
@@ -84,18 +86,18 @@
             appearance: none;
             width: 20px;
             height: 20px;
-            background: white;
+            background: #e94560;
             cursor: pointer;
             border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 2px 5px rgba(233, 69, 96, 0.5);
         }
 
         .heat-button {
             width: 100px;
             height: 100px;
             border-radius: 50%;
-            border: 3px solid white;
-            background: rgba(255, 255, 255, 0.2);
+            border: 3px solid #e94560;
+            background: #0f3460;
             color: white;
             font-size: 16px;
             font-weight: bold;
@@ -104,8 +106,8 @@
         }
 
         .heat-button.active {
-            background: #ff6b6b;
-            box-shadow: 0 0 30px #ff6b6b;
+            background: #e94560;
+            box-shadow: 0 0 30px #e94560;
         }
 
         .center-controls {
@@ -117,8 +119,8 @@
 
         .connect-button {
             padding: 15px 30px;
-            background: white;
-            color: #667eea;
+            background: #e94560;
+            color: white;
             border: none;
             border-radius: 25px;
             font-size: 16px;
@@ -129,11 +131,11 @@
 
         .connect-button:hover {
             transform: scale(1.05);
+            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.5);
         }
 
         .connect-button.connected {
             background: #51cf66;
-            color: white;
         }
 
         .signal-indicator {
@@ -144,7 +146,7 @@
 
         .signal-bar {
             width: 4px;
-            background: rgba(255, 255, 255, 0.3);
+            background: #0f3460;
             border-radius: 2px;
             transition: all 0.3s;
         }
@@ -167,11 +169,12 @@
 
         .signal-bar.active {
             background: #51cf66;
+            box-shadow: 0 0 5px #51cf66;
         }
 
         .status {
             font-size: 12px;
-            opacity: 0.8;
+            color: #999;
         }
     </style>
 </head>
@@ -218,7 +221,6 @@
                 this.isConnected = false;
                 this.rssi = -100;
 
-                // UUID для BLE сервиса и характеристики
                 this.SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
                 this.CHAR_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
 
@@ -229,11 +231,9 @@
             }
 
             initUI() {
-                // Кнопка подключения
                 this.connectBtn = document.getElementById('connectButton');
                 this.connectBtn.addEventListener('click', () => this.toggleConnection());
 
-                // Слайдеры
                 this.speedSlider = document.getElementById('speedSlider');
                 this.powerSlider = document.getElementById('powerSlider');
 
@@ -245,7 +245,6 @@
                     document.getElementById('powerValue').textContent = e.target.value + '%';
                 });
 
-                // Кнопка нагрева
                 this.heatButton = document.getElementById('heatButton');
                 this.heatButton.addEventListener('click', () => this.toggleHeat());
             }
@@ -283,7 +282,6 @@
 
                     joystick.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
 
-                    // Отправка команд движения
                     this.sendMovementCommand(deltaX / maxDistance, -deltaY / maxDistance);
                 };
 
@@ -293,24 +291,20 @@
                     this.sendMovementCommand(0, 0);
                 };
 
-                // Touch события
                 container.addEventListener('touchstart', handleStart);
                 container.addEventListener('touchmove', handleMove);
                 container.addEventListener('touchend', handleEnd);
 
-                // Mouse события
                 container.addEventListener('mousedown', handleStart);
                 document.addEventListener('mousemove', handleMove);
                 document.addEventListener('mouseup', handleEnd);
             }
 
             lockOrientation() {
-                // Блокировка ориентации
                 if (screen.orientation && screen.orientation.lock) {
                     screen.orientation.lock('landscape').catch(() => { });
                 }
 
-                // Альтернативный метод
                 const lockFunction = screen.lockOrientation ||
                     screen.mozLockOrientation ||
                     screen.msLockOrientation;
@@ -330,12 +324,10 @@
 
             async connect() {
                 try {
-                    // Запрос устройства
                     this.device = await navigator.bluetooth.requestDevice({
                         filters: [{ services: [this.SERVICE_UUID] }]
                     });
 
-                    // Подключение
                     const server = await this.device.gatt.connect();
                     const service = await server.getPrimaryService(this.SERVICE_UUID);
                     this.characteristic = await service.getCharacteristic(this.CHAR_UUID);
@@ -343,13 +335,10 @@
                     this.isConnected = true;
                     this.updateConnectionUI(true);
 
-                    // Сохранение устройства
                     localStorage.setItem('lastDeviceId', this.device.id);
 
-                    // Мониторинг RSSI
                     this.startRSSIMonitoring();
 
-                    // Обработка отключения
                     this.device.addEventListener('gattserverdisconnected', () => {
                         this.onDisconnected();
                     });
@@ -393,7 +382,6 @@
                 this.rssiInterval = setInterval(async () => {
                     if (this.device && this.device.gatt.connected) {
                         try {
-                            // Эмуляция RSSI (в реальности нужен специальный API)
                             this.rssi = -50 - Math.random() * 30;
                             this.updateSignalStrength(this.rssi);
                         } catch (error) {
@@ -428,8 +416,6 @@
                 const lastDeviceId = localStorage.getItem('lastDeviceId');
                 if (!lastDeviceId) return;
 
-                // Web Bluetooth API не поддерживает автоподключение напрямую
-                // Показываем подсказку пользователю
                 setTimeout(() => {
                     const status = document.getElementById('status');
                     status.textContent = 'Нажмите для переподключения';
@@ -441,7 +427,6 @@
                 const isActive = button.classList.toggle('active');
 
                 if (isActive) {
-                    // Вибрация при включении
                     if (navigator.vibrate) {
                         navigator.vibrate(50);
                     }
@@ -456,11 +441,9 @@
 
                 const speed = parseInt(this.speedSlider.value);
 
-                // Формат команды: [CMD, X, Y, SPEED]
-                // CMD: 0x01 - движение
                 const data = new Uint8Array([
                     0x01,
-                    Math.round((x + 1) * 127),  // -1..1 -> 0..254
+                    Math.round((x + 1) * 127),
                     Math.round((y + 1) * 127),
                     speed
                 ]);
@@ -471,11 +454,10 @@
             sendHeatCommand(enabled, power) {
                 if (!this.isConnected) return;
 
-                // CMD: 0x02 - нагрев
                 const data = new Uint8Array([
                     0x02,
                     enabled ? 1 : 0,
-                    Math.round(power * 2.55)  // 0-100% -> 0-255
+                    Math.round(power * 2.55)
                 ]);
 
                 this.sendData(data);
@@ -492,11 +474,9 @@
             }
         }
 
-        // Инициализация при загрузке
         document.addEventListener('DOMContentLoaded', () => {
             new RobotController();
         });
-
     </script>
 </body>
 
