@@ -220,8 +220,14 @@
                 this.SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
                 this.CHAR_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
                 
+                // Очередь команд и флаг занятости
+                this.commandQueue = [];
+                this.isSending = false;
+                this.sendInterval = null;
+                
                 this.initUI();
                 this.initJoystick();
+                this.startCommandProcessor();
                 this.tryAutoConnect();
             }
 
@@ -246,6 +252,7 @@
                 let isDragging = false;
                 let centerX, centerY;
                 const maxDistance = 60;
+                let moveThrottle = null;
                 
                 const handleStart = (e) => {
                     isDragging = true;
@@ -272,12 +279,17 @@
                     
                     joystick.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
                     
-                    this.sendMovementCommand(deltaX / maxDistance, -deltaY / maxDistance);
+                    // Throttle движения
+                    if (moveThrottle) clearTimeout(moveThrottle);
+                    moveThrottle = setTimeout(() => {
+                        this.sendMovementCommand(deltaX / maxDistance, -deltaY / maxDistance);
+                    }, 50);
                 };
                 
                 const handleEnd = () => {
                     isDragging = false;
                     joystick.style.transform = 'translate(-50%, -50%)';
+                    if (moveThrottle) clearTimeout(moveThrottle);
                     this.sendMovementCommand(0, 0);
                 };
                 
@@ -288,6 +300,17 @@
                 container.addEventListener('mousedown', handleStart);
                 document.addEventListener('mousemove', handleMove);
                 document.addEventListener('mouseup', handleEnd);
+            }
+
+            startCommandProcessor() {
+                this.sendInterval = setInterval(async () => {
+                    if (!this.isSending && this.commandQueue.length > 0) {
+                        this.isSending = true;
+                        const command = this.commandQueue.shift();
+                        await this.sendData(command);
+                        this.isSending = false;
+                    }
+                }, 20);
             }
 
             async toggleConnection() {
@@ -336,6 +359,7 @@
                 this.isConnected = false;
                 this.updateConnectionUI(false);
                 this.stopRSSIMonitoring();
+                this.commandQueue = [];
             }
 
             updateConnectionUI(connected) {
@@ -423,7 +447,7 @@
                     speed
                 ]);
                 
-                this.sendData(data);
+                this.queueCommand(data);
             }
 
             sendHeatCommand(enabled) {
@@ -435,7 +459,16 @@
                     0
                 ]);
                 
-                this.sendData(data);
+                this.queueCommand(data);
+            }
+
+            queueCommand(data) {
+                // Для движения заменяем последнюю команду, для других добавляем
+                if (data[0] === 0x01) {
+                    // Удаляем предыдущие команды движения
+                    this.commandQueue = this.commandQueue.filter(cmd => cmd[0] !== 0x01);
+                }
+                this.commandQueue.push(data);
             }
 
             async sendData(data) {
@@ -445,6 +478,7 @@
                     await this.characteristic.writeValue(data);
                 } catch (error) {
                     console.error('Ошибка отправки данных:', error);
+                    this.isSending = false;
                 }
             }
         }
