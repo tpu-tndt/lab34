@@ -2,6 +2,9 @@
 <html lang="ru">
 
 <head>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Управление роботом</title>
@@ -246,6 +249,21 @@
                 this.initJoystick();
                 this.startCommandProcessor();
                 this.tryAutoConnect();
+
+                if ('standalone' in window.navigator && !window.navigator.standalone) {
+                    // PWA установка
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        e.prompt();
+                    });
+                }
+
+                // Запрос полноэкранного режима при первом касании
+                document.addEventListener('touchstart', () => {
+                    if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
+                        document.documentElement.requestFullscreen().catch(() => { });
+                    }
+                }, { once: true });
             }
 
             initUI() {
