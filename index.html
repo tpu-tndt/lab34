@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -47,7 +48,8 @@
             padding: 20px;
         }
 
-        .left-controls, .right-controls {
+        .left-controls,
+        .right-controls {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -164,10 +166,21 @@
             transition: all 0.3s;
         }
 
-        .signal-bar:nth-child(1) { height: 10px; }
-        .signal-bar:nth-child(2) { height: 15px; }
-        .signal-bar:nth-child(3) { height: 20px; }
-        .signal-bar:nth-child(4) { height: 25px; }
+        .signal-bar:nth-child(1) {
+            height: 10px;
+        }
+
+        .signal-bar:nth-child(2) {
+            height: 15px;
+        }
+
+        .signal-bar:nth-child(3) {
+            height: 20px;
+        }
+
+        .signal-bar:nth-child(4) {
+            height: 25px;
+        }
 
         .signal-bar.active {
             background: #51cf66;
@@ -180,6 +193,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="left-controls">
@@ -216,15 +230,14 @@
                 this.characteristic = null;
                 this.isConnected = false;
                 this.rssi = -100;
-                
+
                 this.SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
                 this.CHAR_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
-                
-                // Очередь команд и флаг занятости
+
                 this.commandQueue = [];
                 this.isSending = false;
-                this.sendInterval = null;
-                
+                this.lastMovementCommand = null;
+
                 this.initUI();
                 this.initJoystick();
                 this.startCommandProcessor();
@@ -234,13 +247,13 @@
             initUI() {
                 this.connectBtn = document.getElementById('connectButton');
                 this.connectBtn.addEventListener('click', () => this.toggleConnection());
-                
+
                 this.speedSlider = document.getElementById('speedSlider');
-                
+
                 this.speedSlider.addEventListener('input', (e) => {
                     document.getElementById('speedValue').textContent = e.target.value;
                 });
-                
+
                 this.heatButton = document.getElementById('heatButton');
                 this.heatButton.addEventListener('click', () => this.toggleHeat());
             }
@@ -248,69 +261,64 @@
             initJoystick() {
                 const container = document.getElementById('joystickContainer');
                 const joystick = document.getElementById('joystick');
-                
+
                 let isDragging = false;
                 let centerX, centerY;
                 const maxDistance = 60;
-                let moveThrottle = null;
-                
+
                 const handleStart = (e) => {
                     isDragging = true;
                     const rect = container.getBoundingClientRect();
                     centerX = rect.left + rect.width / 2;
                     centerY = rect.top + rect.height / 2;
                 };
-                
+
                 const handleMove = (e) => {
                     if (!isDragging) return;
-                    
+
                     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-                    
+
                     let deltaX = clientX - centerX;
                     let deltaY = clientY - centerY;
-                    
+
                     const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-                    
+
                     if (distance > maxDistance) {
                         deltaX = (deltaX / distance) * maxDistance;
                         deltaY = (deltaY / distance) * maxDistance;
                     }
-                    
+
                     joystick.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
-                    
-                    // Throttle движения
-                    if (moveThrottle) clearTimeout(moveThrottle);
-                    moveThrottle = setTimeout(() => {
-                        this.sendMovementCommand(deltaX / maxDistance, -deltaY / maxDistance);
-                    }, 50);
+
+                    // Исправлена ориентация осей
+                    this.sendMovementCommand(-deltaY / maxDistance, deltaX / maxDistance);
                 };
-                
+
                 const handleEnd = () => {
                     isDragging = false;
                     joystick.style.transform = 'translate(-50%, -50%)';
-                    if (moveThrottle) clearTimeout(moveThrottle);
                     this.sendMovementCommand(0, 0);
                 };
-                
+
                 container.addEventListener('touchstart', handleStart);
                 container.addEventListener('touchmove', handleMove);
                 container.addEventListener('touchend', handleEnd);
-                
+
                 container.addEventListener('mousedown', handleStart);
                 document.addEventListener('mousemove', handleMove);
                 document.addEventListener('mouseup', handleEnd);
             }
 
             startCommandProcessor() {
-                this.sendInterval = setInterval(async () => {
+                setInterval(async () => {
                     if (!this.isSending && this.commandQueue.length > 0) {
                         this.isSending = true;
                         const command = this.commandQueue.shift();
                         await this.sendData(command);
                         this.isSending = false;
                     }
-                }, 20);
+                }, 30);
             }
 
             async toggleConnection() {
@@ -326,22 +334,22 @@
                     this.device = await navigator.bluetooth.requestDevice({
                         filters: [{ services: [this.SERVICE_UUID] }]
                     });
-                    
+
                     const server = await this.device.gatt.connect();
                     const service = await server.getPrimaryService(this.SERVICE_UUID);
                     this.characteristic = await service.getCharacteristic(this.CHAR_UUID);
-                    
+
                     this.isConnected = true;
                     this.updateConnectionUI(true);
-                    
+
                     localStorage.setItem('lastDeviceId', this.device.id);
-                    
+
                     this.startRSSIMonitoring();
-                    
+
                     this.device.addEventListener('gattserverdisconnected', () => {
                         this.onDisconnected();
                     });
-                    
+
                 } catch (error) {
                     console.error('Ошибка подключения:', error);
                     alert('Не удалось подключиться к устройству');
@@ -365,7 +373,7 @@
             updateConnectionUI(connected) {
                 const btn = document.getElementById('connectButton');
                 const status = document.getElementById('status');
-                
+
                 if (connected) {
                     btn.classList.add('connected');
                     btn.textContent = 'Отключить';
@@ -400,13 +408,13 @@
             updateSignalStrength(rssi) {
                 const bars = document.querySelectorAll('.signal-bar');
                 bars.forEach(bar => bar.classList.remove('active'));
-                
+
                 let strength = 0;
                 if (rssi > -50) strength = 4;
                 else if (rssi > -60) strength = 3;
                 else if (rssi > -70) strength = 2;
                 else if (rssi > -80) strength = 1;
-                
+
                 for (let i = 0; i < strength; i++) {
                     bars[i].classList.add('active');
                 }
@@ -415,7 +423,7 @@
             async tryAutoConnect() {
                 const lastDeviceId = localStorage.getItem('lastDeviceId');
                 if (!lastDeviceId) return;
-                
+
                 setTimeout(() => {
                     const status = document.getElementById('status');
                     status.textContent = 'Нажмите для переподключения';
@@ -425,55 +433,48 @@
             toggleHeat() {
                 const button = document.getElementById('heatButton');
                 const isActive = button.classList.toggle('active');
-                
+
                 if (isActive) {
                     if (navigator.vibrate) {
                         navigator.vibrate(50);
                     }
                 }
-                
+
                 this.sendHeatCommand(isActive);
             }
 
             sendMovementCommand(x, y) {
                 if (!this.isConnected) return;
-                
+
                 const speed = parseInt(this.speedSlider.value);
-                
+
                 const data = new Uint8Array([
                     0x01,
                     Math.round((x + 1) * 127),
                     Math.round((y + 1) * 127),
                     speed
                 ]);
-                
-                this.queueCommand(data);
+
+                // Заменяем последнюю команду движения
+                this.commandQueue = this.commandQueue.filter(cmd => cmd[0] !== 0x01);
+                this.commandQueue.push(data);
             }
 
             sendHeatCommand(enabled) {
                 if (!this.isConnected) return;
-                
+
                 const data = new Uint8Array([
                     0x02,
                     enabled ? 1 : 0,
                     0
                 ]);
-                
-                this.queueCommand(data);
-            }
 
-            queueCommand(data) {
-                // Для движения заменяем последнюю команду, для других добавляем
-                if (data[0] === 0x01) {
-                    // Удаляем предыдущие команды движения
-                    this.commandQueue = this.commandQueue.filter(cmd => cmd[0] !== 0x01);
-                }
                 this.commandQueue.push(data);
             }
 
             async sendData(data) {
                 if (!this.characteristic) return;
-                
+
                 try {
                     await this.characteristic.writeValue(data);
                 } catch (error) {
@@ -488,4 +489,5 @@
         });
     </script>
 </body>
+
 </html>
