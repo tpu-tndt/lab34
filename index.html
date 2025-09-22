@@ -236,7 +236,11 @@
 
                 this.commandQueue = [];
                 this.isSending = false;
-                this.lastMovementCommand = null;
+
+                this.currentX = 0;
+                this.currentY = 0;
+                this.isDragging = false;
+                this.sendInterval = null;
 
                 this.initUI();
                 this.initJoystick();
@@ -262,19 +266,26 @@
                 const container = document.getElementById('joystickContainer');
                 const joystick = document.getElementById('joystick');
 
-                let isDragging = false;
                 let centerX, centerY;
                 const maxDistance = 60;
 
                 const handleStart = (e) => {
-                    isDragging = true;
+                    this.isDragging = true;
                     const rect = container.getBoundingClientRect();
                     centerX = rect.left + rect.width / 2;
                     centerY = rect.top + rect.height / 2;
+
+                    // Запускаем постоянную отправку
+                    if (this.sendInterval) clearInterval(this.sendInterval);
+                    this.sendInterval = setInterval(() => {
+                        if (this.isDragging) {
+                            this.sendMovementCommand(this.currentX, this.currentY);
+                        }
+                    }, 100);
                 };
 
                 const handleMove = (e) => {
-                    if (!isDragging) return;
+                    if (!this.isDragging) return;
 
                     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
@@ -291,13 +302,22 @@
 
                     joystick.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
 
-                    // Исправлена ориентация осей
-                    this.sendMovementCommand(-deltaY / maxDistance, deltaX / maxDistance);
+                    this.currentX = deltaX / maxDistance;
+                    this.currentY = -deltaY / maxDistance;
+                    this.sendMovementCommand(this.currentX, this.currentY);
                 };
 
                 const handleEnd = () => {
-                    isDragging = false;
+                    this.isDragging = false;
+                    this.currentX = 0;
+                    this.currentY = 0;
                     joystick.style.transform = 'translate(-50%, -50%)';
+
+                    if (this.sendInterval) {
+                        clearInterval(this.sendInterval);
+                        this.sendInterval = null;
+                    }
+
                     this.sendMovementCommand(0, 0);
                 };
 
@@ -455,7 +475,6 @@
                     speed
                 ]);
 
-                // Заменяем последнюю команду движения
                 this.commandQueue = this.commandQueue.filter(cmd => cmd[0] !== 0x01);
                 this.commandQueue.push(data);
             }
