@@ -2,11 +2,10 @@
 <html lang="ru">
 
 <head>
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Управление роботом</title>
     <style>
         * {
@@ -51,55 +50,35 @@
             padding: 20px;
         }
 
-        .left-controls,
-        .right-controls {
+        .left-controls {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            gap: 20px;
+            justify-content: flex-end;
+            height: 100%;
+            gap: 15px;
+            padding-bottom: 20px;
         }
 
-        .joystick-container {
-            width: 150px;
-            height: 150px;
-            background: #0f3460;
-            border: 2px solid #16213e;
-            border-radius: 50%;
-            position: relative;
-            touch-action: none;
-        }
-
-        .joystick {
-            width: 60px;
-            height: 60px;
-            background: #e94560;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            transition: none;
-            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.5);
-        }
-
-        .slider-container {
+        .power-control {
             display: flex;
             align-items: center;
             gap: 10px;
-            color: #eee;
+            background: #0f3460;
+            padding: 10px;
+            border-radius: 10px;
         }
 
-        .slider {
+        .power-slider {
             width: 120px;
             -webkit-appearance: none;
             appearance: none;
             height: 6px;
-            background: #0f3460;
+            background: #1a1a2e;
             outline: none;
             border-radius: 3px;
         }
 
-        .slider::-webkit-slider-thumb {
+        .power-slider::-webkit-slider-thumb {
             -webkit-appearance: none;
             appearance: none;
             width: 20px;
@@ -107,13 +86,12 @@
             background: #e94560;
             cursor: pointer;
             border-radius: 50%;
-            box-shadow: 0 2px 5px rgba(233, 69, 96, 0.5);
         }
 
         .heat-button {
             width: 100px;
-            height: 100px;
-            border-radius: 50%;
+            height: 80px;
+            border-radius: 10px;
             border: 3px solid #e94560;
             background: #0f3460;
             color: white;
@@ -144,55 +122,104 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .connect-button:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 20px rgba(233, 69, 96, 0.5);
         }
 
         .connect-button.connected {
             background: #51cf66;
         }
 
-        .signal-indicator {
-            display: flex;
-            gap: 3px;
-            align-items: flex-end;
-        }
-
-        .signal-bar {
-            width: 4px;
-            background: #0f3460;
-            border-radius: 2px;
-            transition: all 0.3s;
-        }
-
-        .signal-bar:nth-child(1) {
-            height: 10px;
-        }
-
-        .signal-bar:nth-child(2) {
-            height: 15px;
-        }
-
-        .signal-bar:nth-child(3) {
-            height: 20px;
-        }
-
-        .signal-bar:nth-child(4) {
-            height: 25px;
-        }
-
-        .signal-bar.active {
-            background: #51cf66;
-            box-shadow: 0 0 5px #51cf66;
-        }
-
         .status {
             font-size: 12px;
             color: #999;
+        }
+
+        .right-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #0f3460;
+            padding: 10px;
+            border-radius: 10px;
+            justify-content: center;
+        }
+
+        .speed-input {
+            width: 80px;
+            padding: 5px;
+            background: #1a1a2e;
+            color: white;
+            border: 1px solid #e94560;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .speed-btn {
+            width: 30px;
+            height: 30px;
+            background: #e94560;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        .right-controls {
+            display: grid;
+            grid-template-columns: repeat(3, 80px);
+            grid-template-rows: repeat(3, 80px);
+            gap: 10px;
+        }
+
+        .control-btn {
+            background: #0f3460;
+            border: 2px solid #16213e;
+            color: white;
+            border-radius: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .control-btn:active {
+            background: #e94560;
+            transform: scale(0.95);
+        }
+
+        .control-btn.toggle {
+            background: #0f3460;
+        }
+
+        .control-btn.toggle.active {
+            background: #e94560;
+            box-shadow: 0 0 20px #e94560;
+        }
+
+        .forward-btn {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .left-btn {
+            grid-column: 1;
+            grid-row: 2;
+        }
+
+        .right-btn {
+            grid-column: 3;
+            grid-row: 2;
+        }
+
+        .back-btn {
+            grid-column: 2;
+            grid-row: 3;
         }
     </style>
 </head>
@@ -200,28 +227,32 @@
 <body>
     <div class="container">
         <div class="left-controls">
+            <div class="power-control">
+                <span>Мощность:</span>
+                <input type="range" class="power-slider" id="powerSlider" min="0" max="100" value="50">
+                <span id="powerValue">50%</span>
+            </div>
             <button class="heat-button" id="heatButton">НАГРЕВ</button>
         </div>
 
         <div class="center-controls">
             <button class="connect-button" id="connectButton">Подключить</button>
-            <div class="signal-indicator" id="signalIndicator">
-                <div class="signal-bar"></div>
-                <div class="signal-bar"></div>
-                <div class="signal-bar"></div>
-                <div class="signal-bar"></div>
-            </div>
             <div class="status" id="status">Не подключено</div>
         </div>
 
-        <div class="right-controls">
-            <div class="slider-container">
-                <span>Скорость</span>
-                <input type="range" class="slider" id="speedSlider" min="1" max="5" value="3">
-                <span id="speedValue">3</span>
+        <div class="right-section">
+            <div class="speed-control">
+                <button class="speed-btn" onclick="changeSpeed(-2)">-</button>
+                <input type="number" class="speed-input" id="speedInput" value="50">
+                <span style="margin: 0 5px;">мм/с</span>
+                <button class="speed-btn" onclick="changeSpeed(2)">+</button>
             </div>
-            <div class="joystick-container" id="joystickContainer">
-                <div class="joystick" id="joystick"></div>
+
+            <div class="right-controls">
+                <button class="control-btn toggle forward-btn" id="forwardBtn">↑</button>
+                <button class="control-btn left-btn" id="leftBtn">←</button>
+                <button class="control-btn right-btn" id="rightBtn">→</button>
+                <button class="control-btn back-btn" id="backBtn">↓</button>
             </div>
         </div>
     </div>
@@ -232,131 +263,69 @@
                 this.device = null;
                 this.characteristic = null;
                 this.isConnected = false;
-                this.rssi = -100;
+                this.currentSpeed = 50;
+                this.currentPower = 50;
+                this.isMovingForward = false;
 
                 this.SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
                 this.CHAR_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
 
-                this.commandQueue = [];
-                this.isSending = false;
-
-                this.currentX = 0;
-                this.currentY = 0;
-                this.isDragging = false;
-                this.sendInterval = null;
-
                 this.initUI();
-                this.initJoystick();
-                this.startCommandProcessor();
-                this.tryAutoConnect();
+                this.requestFullscreen();
+            }
 
-                if ('standalone' in window.navigator && !window.navigator.standalone) {
-                    // PWA установка
-                    window.addEventListener('beforeinstallprompt', (e) => {
-                        e.preventDefault();
-                        e.prompt();
-                    });
-                }
+            initUI() {
+                document.getElementById('connectButton').addEventListener('click', () => this.toggleConnection());
+                document.getElementById('heatButton').addEventListener('click', () => this.toggleHeat());
 
-                // Запрос полноэкранного режима при первом касании
+                // Регулировка мощности
+                const powerSlider = document.getElementById('powerSlider');
+                powerSlider.addEventListener('input', (e) => {
+                    this.currentPower = parseInt(e.target.value);
+                    document.getElementById('powerValue').textContent = this.currentPower + '%';
+                    this.sendPower();
+                });
+
+                // Кнопка вперед - переключаемая
+                document.getElementById('forwardBtn').addEventListener('click', () => {
+                    this.isMovingForward = !this.isMovingForward;
+                    document.getElementById('forwardBtn').classList.toggle('active', this.isMovingForward);
+                    this.sendMovement(1, 0);
+                });
+
+                // Кнопка назад
+                const backBtn = document.getElementById('backBtn');
+                backBtn.addEventListener('touchstart', () => this.sendMovement(2, 1));
+                backBtn.addEventListener('touchend', () => this.sendMovement(0, 0));
+                backBtn.addEventListener('mousedown', () => this.sendMovement(2, 1));
+                backBtn.addEventListener('mouseup', () => this.sendMovement(0, 0));
+
+                // Повороты
+                const leftBtn = document.getElementById('leftBtn');
+                leftBtn.addEventListener('touchstart', () => this.sendMovement(3, 1));
+                leftBtn.addEventListener('touchend', () => this.sendMovement(3, 0));
+                leftBtn.addEventListener('mousedown', () => this.sendMovement(3, 1));
+                leftBtn.addEventListener('mouseup', () => this.sendMovement(3, 0));
+
+                const rightBtn = document.getElementById('rightBtn');
+                rightBtn.addEventListener('touchstart', () => this.sendMovement(4, 1));
+                rightBtn.addEventListener('touchend', () => this.sendMovement(4, 0));
+                rightBtn.addEventListener('mousedown', () => this.sendMovement(4, 1));
+                rightBtn.addEventListener('mouseup', () => this.sendMovement(4, 0));
+
+                // Скорость
+                document.getElementById('speedInput').addEventListener('change', (e) => {
+                    this.currentSpeed = parseFloat(e.target.value);
+                    this.sendSpeed();
+                });
+            }
+
+            requestFullscreen() {
                 document.addEventListener('touchstart', () => {
                     if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
                         document.documentElement.requestFullscreen().catch(() => { });
                     }
                 }, { once: true });
-            }
-
-            initUI() {
-                this.connectBtn = document.getElementById('connectButton');
-                this.connectBtn.addEventListener('click', () => this.toggleConnection());
-
-                this.speedSlider = document.getElementById('speedSlider');
-
-                this.speedSlider.addEventListener('input', (e) => {
-                    document.getElementById('speedValue').textContent = e.target.value;
-                });
-
-                this.heatButton = document.getElementById('heatButton');
-                this.heatButton.addEventListener('click', () => this.toggleHeat());
-            }
-
-            initJoystick() {
-                const container = document.getElementById('joystickContainer');
-                const joystick = document.getElementById('joystick');
-
-                let centerX, centerY;
-                const maxDistance = 60;
-
-                const handleStart = (e) => {
-                    this.isDragging = true;
-                    const rect = container.getBoundingClientRect();
-                    centerX = rect.left + rect.width / 2;
-                    centerY = rect.top + rect.height / 2;
-
-                    // Запускаем постоянную отправку
-                    if (this.sendInterval) clearInterval(this.sendInterval);
-                    this.sendInterval = setInterval(() => {
-                        if (this.isDragging) {
-                            this.sendMovementCommand(this.currentX, this.currentY);
-                        }
-                    }, 100);
-                };
-
-                const handleMove = (e) => {
-                    if (!this.isDragging) return;
-
-                    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-                    let deltaX = clientX - centerX;
-                    let deltaY = clientY - centerY;
-
-                    const distance = Math.sqrt(deltaX * deltaX + deltaY * deltaY);
-
-                    if (distance > maxDistance) {
-                        deltaX = (deltaX / distance) * maxDistance;
-                        deltaY = (deltaY / distance) * maxDistance;
-                    }
-
-                    joystick.style.transform = `translate(calc(-50% + ${deltaX}px), calc(-50% + ${deltaY}px))`;
-
-                    this.currentX = deltaX / maxDistance;
-                    this.currentY = -deltaY / maxDistance;
-                    this.sendMovementCommand(this.currentX, this.currentY);
-                };
-
-                const handleEnd = () => {
-                    this.isDragging = false;
-                    this.currentX = 0;
-                    this.currentY = 0;
-                    joystick.style.transform = 'translate(-50%, -50%)';
-
-                    if (this.sendInterval) {
-                        clearInterval(this.sendInterval);
-                        this.sendInterval = null;
-                    }
-
-                    this.sendMovementCommand(0, 0);
-                };
-
-                container.addEventListener('touchstart', handleStart);
-                container.addEventListener('touchmove', handleMove);
-                container.addEventListener('touchend', handleEnd);
-
-                container.addEventListener('mousedown', handleStart);
-                document.addEventListener('mousemove', handleMove);
-                document.addEventListener('mouseup', handleEnd);
-            }
-
-            startCommandProcessor() {
-                setInterval(async () => {
-                    if (!this.isSending && this.commandQueue.length > 0) {
-                        this.isSending = true;
-                        const command = this.commandQueue.shift();
-                        await this.sendData(command);
-                        this.isSending = false;
-                    }
-                }, 30);
             }
 
             async toggleConnection() {
@@ -378,11 +347,12 @@
                     this.characteristic = await service.getCharacteristic(this.CHAR_UUID);
 
                     this.isConnected = true;
-                    this.updateConnectionUI(true);
+                    document.getElementById('connectButton').classList.add('connected');
+                    document.getElementById('connectButton').textContent = 'Отключить';
+                    document.getElementById('status').textContent = 'Подключено';
 
-                    localStorage.setItem('lastDeviceId', this.device.id);
-
-                    this.startRSSIMonitoring();
+                    this.sendSpeed();
+                    this.sendPower();
 
                     this.device.addEventListener('gattserverdisconnected', () => {
                         this.onDisconnected();
@@ -390,7 +360,6 @@
 
                 } catch (error) {
                     console.error('Ошибка подключения:', error);
-                    alert('Не удалось подключиться к устройству');
                 }
             }
 
@@ -403,122 +372,57 @@
 
             onDisconnected() {
                 this.isConnected = false;
-                this.updateConnectionUI(false);
-                this.stopRSSIMonitoring();
-                this.commandQueue = [];
-            }
-
-            updateConnectionUI(connected) {
-                const btn = document.getElementById('connectButton');
-                const status = document.getElementById('status');
-
-                if (connected) {
-                    btn.classList.add('connected');
-                    btn.textContent = 'Отключить';
-                    status.textContent = 'Подключено';
-                } else {
-                    btn.classList.remove('connected');
-                    btn.textContent = 'Подключить';
-                    status.textContent = 'Не подключено';
-                    this.updateSignalStrength(0);
-                }
-            }
-
-            startRSSIMonitoring() {
-                this.rssiInterval = setInterval(async () => {
-                    if (this.device && this.device.gatt.connected) {
-                        try {
-                            this.rssi = -50 - Math.random() * 30;
-                            this.updateSignalStrength(this.rssi);
-                        } catch (error) {
-                            console.error('Ошибка получения RSSI');
-                        }
-                    }
-                }, 1000);
-            }
-
-            stopRSSIMonitoring() {
-                if (this.rssiInterval) {
-                    clearInterval(this.rssiInterval);
-                }
-            }
-
-            updateSignalStrength(rssi) {
-                const bars = document.querySelectorAll('.signal-bar');
-                bars.forEach(bar => bar.classList.remove('active'));
-
-                let strength = 0;
-                if (rssi > -50) strength = 4;
-                else if (rssi > -60) strength = 3;
-                else if (rssi > -70) strength = 2;
-                else if (rssi > -80) strength = 1;
-
-                for (let i = 0; i < strength; i++) {
-                    bars[i].classList.add('active');
-                }
-            }
-
-            async tryAutoConnect() {
-                const lastDeviceId = localStorage.getItem('lastDeviceId');
-                if (!lastDeviceId) return;
-
-                setTimeout(() => {
-                    const status = document.getElementById('status');
-                    status.textContent = 'Нажмите для переподключения';
-                }, 1000);
+                document.getElementById('connectButton').classList.remove('connected');
+                document.getElementById('connectButton').textContent = 'Подключить';
+                document.getElementById('status').textContent = 'Не подключено';
+                document.getElementById('forwardBtn').classList.remove('active');
+                this.isMovingForward = false;
             }
 
             toggleHeat() {
                 const button = document.getElementById('heatButton');
                 const isActive = button.classList.toggle('active');
 
-                if (isActive) {
-                    if (navigator.vibrate) {
-                        navigator.vibrate(50);
-                    }
+                if (isActive && navigator.vibrate) {
+                    navigator.vibrate(50);
                 }
 
-                this.sendHeatCommand(isActive);
+                this.sendCommand(new Uint8Array([0x03, isActive ? 1 : 0]));
             }
 
-            sendMovementCommand(x, y) {
-                if (!this.isConnected) return;
-
-                const speed = parseInt(this.speedSlider.value);
-
-                const data = new Uint8Array([
-                    0x01,
-                    Math.round((x + 1) * 127),
-                    Math.round((y + 1) * 127),
-                    speed
-                ]);
-
-                this.commandQueue = this.commandQueue.filter(cmd => cmd[0] !== 0x01);
-                this.commandQueue.push(data);
+            sendMovement(action, param) {
+                this.sendCommand(new Uint8Array([0x01, action, param]));
             }
 
-            sendHeatCommand(enabled) {
-                if (!this.isConnected) return;
-
-                const data = new Uint8Array([
-                    0x02,
-                    enabled ? 1 : 0,
-                    0
-                ]);
-
-                this.commandQueue.push(data);
+            sendSpeed() {
+                const buffer = new ArrayBuffer(5);
+                const view = new DataView(buffer);
+                view.setUint8(0, 0x02);
+                view.setFloat32(1, this.currentSpeed, true);
+                this.sendCommand(new Uint8Array(buffer));
             }
 
-            async sendData(data) {
-                if (!this.characteristic) return;
+            sendPower() {
+                this.sendCommand(new Uint8Array([0x04, this.currentPower]));
+            }
+
+            async sendCommand(data) {
+                if (!this.characteristic || !this.isConnected) return;
 
                 try {
                     await this.characteristic.writeValue(data);
                 } catch (error) {
-                    console.error('Ошибка отправки данных:', error);
-                    this.isSending = false;
+                    console.error('Ошибка отправки:', error);
                 }
             }
+        }
+
+        function changeSpeed(delta) {
+            const input = document.getElementById('speedInput');
+            let newValue = parseFloat(input.value) + delta;
+            newValue = Math.max(1, Math.min(200, newValue));
+            input.value = newValue;
+            input.dispatchEvent(new Event('change'));
         }
 
         document.addEventListener('DOMContentLoaded', () => {
