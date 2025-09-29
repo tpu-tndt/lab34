@@ -1,0 +1,17 @@
+{
+    "name": "Управление роботом",
+    "short_name": "Robot Control",
+    "description": "Управление гусеничным роботом через Bluetooth",
+    "start_url": "/index.html",
+    "display": "fullscreen",
+    "orientation": "landscape",
+    "background_color": "#1a1a2e",
+    "theme_color": "#1a1a2e",
+    "icons": [
+        {
+            "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ]
+}
