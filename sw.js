@@ -1,8 +1,8 @@
 const CACHE_NAME = 'robot-control-v1';
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/manifest.json'
+    './',
+    './index.html',
+    './manifest.json'
 ];
 
 // Установка Service Worker
@@ -13,6 +13,7 @@ self.addEventListener('install', event => {
                 console.log('Кэширование файлов');
                 return cache.addAll(urlsToCache);
             })
+            .catch(err => console.log('Ошибка кэширования:', err))
     );
 });
 
@@ -37,11 +38,15 @@ self.addEventListener('fetch', event => {
     event.respondWith(
         caches.match(event.request)
             .then(response => {
-                // Возвращаем кэшированную версию или делаем запрос
                 if (response) {
+                    console.log('Из кэша:', event.request.url);
                     return response;
                 }
+                console.log('Из сети:', event.request.url);
                 return fetch(event.request);
+            })
+            .catch(() => {
+                console.log('Офлайн, нет в кэше:', event.request.url);
             })
     );
 });
