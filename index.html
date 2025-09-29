@@ -7,6 +7,18 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1a2e">
+<script>
+    // Регистрация Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js')
+                .then(reg => console.log('Service Worker зарегистрирован'))
+                .catch(err => console.log('Ошибка регистрации SW:', err));
+        });
+    }
+</script>
     <title>Управление роботом</title>
     <style>
         * {
@@ -524,31 +536,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             new RobotController();
         });
-    </script>
-
-    <script>
-        // Встроенный Service Worker как Blob
-        const swCode = `
-        const CACHE_NAME = 'robot-v1';
-        self.addEventListener('install', e => {
-            e.waitUntil(
-                caches.open(CACHE_NAME).then(cache => {
-                    return cache.addAll(['/']);
-                })
-            );
-        });
-        self.addEventListener('fetch', e => {
-            e.respondWith(
-                caches.match(e.request).then(r => r || fetch(e.request))
-            );
-        });
-    `;
-
-        if ('serviceWorker' in navigator) {
-            const blob = new Blob([swCode], { type: 'application/javascript' });
-            const swUrl = URL.createObjectURL(blob);
-            navigator.serviceWorker.register(swUrl);
-        }
     </script>
 </body>
 
