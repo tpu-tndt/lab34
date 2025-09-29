@@ -525,6 +525,31 @@
             new RobotController();
         });
     </script>
+
+    <script>
+        // Встроенный Service Worker как Blob
+        const swCode = `
+        const CACHE_NAME = 'robot-v1';
+        self.addEventListener('install', e => {
+            e.waitUntil(
+                caches.open(CACHE_NAME).then(cache => {
+                    return cache.addAll(['/']);
+                })
+            );
+        });
+        self.addEventListener('fetch', e => {
+            e.respondWith(
+                caches.match(e.request).then(r => r || fetch(e.request))
+            );
+        });
+    `;
+
+        if ('serviceWorker' in navigator) {
+            const blob = new Blob([swCode], { type: 'application/javascript' });
+            const swUrl = URL.createObjectURL(blob);
+            navigator.serviceWorker.register(swUrl);
+        }
+    </script>
 </body>
 
 </html>
