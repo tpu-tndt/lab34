@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>Управление роботом</title>
     <style>
         * {
@@ -14,6 +15,7 @@
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
+            -webkit-touch-callout: none;
         }
 
         body {
@@ -53,23 +55,24 @@
         .left-controls {
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            justify-content: center;
+            align-items: center;
             height: 100%;
-            gap: 15px;
-            padding-bottom: 20px;
+            gap: 40px;
         }
 
         .power-control {
             display: flex;
+            flex-direction: column;
             align-items: center;
             gap: 10px;
             background: #0f3460;
-            padding: 10px;
+            padding: 15px;
             border-radius: 10px;
         }
 
         .power-slider {
-            width: 120px;
+            width: 150px;
             -webkit-appearance: none;
             appearance: none;
             height: 6px;
@@ -89,7 +92,7 @@
         }
 
         .heat-button {
-            width: 100px;
+            width: 120px;
             height: 80px;
             border-radius: 10px;
             border: 3px solid #e94560;
@@ -122,6 +125,7 @@
             font-size: 16px;
             font-weight: bold;
             cursor: pointer;
+            transition: all 0.3s;
         }
 
         .connect-button.connected {
@@ -129,14 +133,15 @@
         }
 
         .status {
-            font-size: 12px;
+            font-size: 14px;
             color: #999;
         }
 
         .right-section {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            align-items: center;
+            gap: 40px;
         }
 
         .speed-control {
@@ -144,14 +149,13 @@
             align-items: center;
             gap: 10px;
             background: #0f3460;
-            padding: 10px;
+            padding: 15px;
             border-radius: 10px;
-            justify-content: center;
         }
 
         .speed-input {
             width: 80px;
-            padding: 5px;
+            padding: 8px;
             background: #1a1a2e;
             color: white;
             border: 1px solid #e94560;
@@ -161,20 +165,21 @@
         }
 
         .speed-btn {
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             background: #e94560;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 18px;
+            font-size: 20px;
+            font-weight: bold;
         }
 
-        .right-controls {
+        .controls-grid {
             display: grid;
-            grid-template-columns: repeat(3, 80px);
-            grid-template-rows: repeat(3, 80px);
+            grid-template-columns: repeat(3, 90px);
+            grid-template-rows: repeat(3, 90px);
             gap: 10px;
         }
 
@@ -183,18 +188,15 @@
             border: 2px solid #16213e;
             color: white;
             border-radius: 10px;
-            font-size: 24px;
+            font-size: 30px;
             cursor: pointer;
             transition: all 0.2s;
         }
 
-        .control-btn:active {
+        .control-btn:active,
+        .control-btn.pressed {
             background: #e94560;
             transform: scale(0.95);
-        }
-
-        .control-btn.toggle {
-            background: #0f3460;
         }
 
         .control-btn.toggle.active {
@@ -202,22 +204,22 @@
             box-shadow: 0 0 20px #e94560;
         }
 
-        .forward-btn {
+        #forwardBtn {
             grid-column: 2;
             grid-row: 1;
         }
 
-        .left-btn {
+        #leftBtn {
             grid-column: 1;
             grid-row: 2;
         }
 
-        .right-btn {
+        #rightBtn {
             grid-column: 3;
             grid-row: 2;
         }
 
-        .back-btn {
+        #backBtn {
             grid-column: 2;
             grid-row: 3;
         }
@@ -228,9 +230,11 @@
     <div class="container">
         <div class="left-controls">
             <div class="power-control">
-                <span>Мощность:</span>
-                <input type="range" class="power-slider" id="powerSlider" min="0" max="100" value="50">
-                <span id="powerValue">50%</span>
+                <span>Мощность нагрева</span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <input type="range" class="power-slider" id="powerSlider" min="0" max="100" value="50">
+                    <span id="powerValue">50%</span>
+                </div>
             </div>
             <button class="heat-button" id="heatButton">НАГРЕВ</button>
         </div>
@@ -242,17 +246,17 @@
 
         <div class="right-section">
             <div class="speed-control">
-                <button class="speed-btn" onclick="changeSpeed(-2)">-</button>
-                <input type="number" class="speed-input" id="speedInput" value="50">
-                <span style="margin: 0 5px;">мм/с</span>
-                <button class="speed-btn" onclick="changeSpeed(2)">+</button>
+                <button class="speed-btn" id="speedMinus">−</button>
+                <input type="number" class="speed-input" id="speedInput" value="50" min="1" max="200">
+                <span>мм/с</span>
+                <button class="speed-btn" id="speedPlus">+</button>
             </div>
 
-            <div class="right-controls">
-                <button class="control-btn toggle forward-btn" id="forwardBtn">↑</button>
-                <button class="control-btn left-btn" id="leftBtn">←</button>
-                <button class="control-btn right-btn" id="rightBtn">→</button>
-                <button class="control-btn back-btn" id="backBtn">↓</button>
+            <div class="controls-grid">
+                <button class="control-btn toggle" id="forwardBtn">↑</button>
+                <button class="control-btn" id="leftBtn">←</button>
+                <button class="control-btn" id="rightBtn">→</button>
+                <button class="control-btn" id="backBtn">↓</button>
             </div>
         </div>
     </div>
@@ -263,69 +267,193 @@
                 this.device = null;
                 this.characteristic = null;
                 this.isConnected = false;
-                this.currentSpeed = 50;
-                this.currentPower = 50;
-                this.isMovingForward = false;
 
                 this.SERVICE_UUID = '4fafc201-1fb5-459e-8fcc-c5c9c331914b';
                 this.CHAR_UUID = 'beb5483e-36e1-4688-b7f5-ea07361b26a8';
 
+                // Состояние управления
+                this.currentSpeed = 50;
+                this.currentPower = 50;
+                this.movingForward = false;
+                this.turningLeft = false;
+                this.turningRight = false;
+                this.movingBack = false;
+
+                // Очередь команд
+                this.commandQueue = [];
+                this.isSending = false;
+
                 this.initUI();
-                this.requestFullscreen();
+                this.startCommandProcessor();
+                this.startMovementSender();
             }
 
             initUI() {
-                document.getElementById('connectButton').addEventListener('click', () => this.toggleConnection());
-                document.getElementById('heatButton').addEventListener('click', () => this.toggleHeat());
+                // Подключение
+                document.getElementById('connectButton').addEventListener('click', () => {
+                    this.toggleConnection();
+                });
 
-                // Регулировка мощности
-                const powerSlider = document.getElementById('powerSlider');
-                powerSlider.addEventListener('input', (e) => {
+                // Нагрев
+                document.getElementById('heatButton').addEventListener('click', () => {
+                    const btn = document.getElementById('heatButton');
+                    const isActive = btn.classList.toggle('active');
+                    if (navigator.vibrate) navigator.vibrate(50);
+                    this.queueCommand([0x03, isActive ? 1 : 0]);
+                });
+
+                // Мощность
+                document.getElementById('powerSlider').addEventListener('input', (e) => {
                     this.currentPower = parseInt(e.target.value);
                     document.getElementById('powerValue').textContent = this.currentPower + '%';
-                    this.sendPower();
+                    this.queueCommand([0x04, this.currentPower]);
                 });
-
-                // Кнопка вперед - переключаемая
-                document.getElementById('forwardBtn').addEventListener('click', () => {
-                    this.isMovingForward = !this.isMovingForward;
-                    document.getElementById('forwardBtn').classList.toggle('active', this.isMovingForward);
-                    this.sendMovement(1, 0);
-                });
-
-                // Кнопка назад
-                const backBtn = document.getElementById('backBtn');
-                backBtn.addEventListener('touchstart', () => this.sendMovement(2, 1));
-                backBtn.addEventListener('touchend', () => this.sendMovement(0, 0));
-                backBtn.addEventListener('mousedown', () => this.sendMovement(2, 1));
-                backBtn.addEventListener('mouseup', () => this.sendMovement(0, 0));
-
-                // Повороты
-                const leftBtn = document.getElementById('leftBtn');
-                leftBtn.addEventListener('touchstart', () => this.sendMovement(3, 1));
-                leftBtn.addEventListener('touchend', () => this.sendMovement(3, 0));
-                leftBtn.addEventListener('mousedown', () => this.sendMovement(3, 1));
-                leftBtn.addEventListener('mouseup', () => this.sendMovement(3, 0));
-
-                const rightBtn = document.getElementById('rightBtn');
-                rightBtn.addEventListener('touchstart', () => this.sendMovement(4, 1));
-                rightBtn.addEventListener('touchend', () => this.sendMovement(4, 0));
-                rightBtn.addEventListener('mousedown', () => this.sendMovement(4, 1));
-                rightBtn.addEventListener('mouseup', () => this.sendMovement(4, 0));
 
                 // Скорость
                 document.getElementById('speedInput').addEventListener('change', (e) => {
-                    this.currentSpeed = parseFloat(e.target.value);
+                    let value = parseInt(e.target.value);
+                    if (value < 1) value = 1;
+                    if (value > 200) value = 200;
+                    this.currentSpeed = value;
+                    e.target.value = value;
                     this.sendSpeed();
                 });
-            }
 
-            requestFullscreen() {
+                document.getElementById('speedMinus').addEventListener('click', () => {
+                    const input = document.getElementById('speedInput');
+                    let value = parseInt(input.value) - 2;
+                    if (value < 1) value = 1;
+                    input.value = value;
+                    input.dispatchEvent(new Event('change'));
+                });
+
+                document.getElementById('speedPlus').addEventListener('click', () => {
+                    const input = document.getElementById('speedInput');
+                    let value = parseInt(input.value) + 2;
+                    if (value > 200) value = 200;
+                    input.value = value;
+                    input.dispatchEvent(new Event('change'));
+                });
+
+                // Движение вперед - переключатель
+                document.getElementById('forwardBtn').addEventListener('click', () => {
+                    this.movingForward = !this.movingForward;
+                    document.getElementById('forwardBtn').classList.toggle('active', this.movingForward);
+                    if (!this.movingForward) {
+                        this.queueCommand([0x01, 0, 0]); // Стоп
+                    }
+                });
+
+                // Движение назад
+                this.addMoveButton('backBtn', () => {
+                    this.movingBack = true;
+                    this.movingForward = false;
+                    document.getElementById('forwardBtn').classList.remove('active');
+                    document.getElementById('backBtn').classList.add('pressed');
+                }, () => {
+                    this.movingBack = false;
+                    document.getElementById('backBtn').classList.remove('pressed');
+                    if (!this.movingForward) {
+                        this.queueCommand([0x01, 0, 0]); // Стоп
+                    }
+                });
+
+                // Поворот влево
+                this.addMoveButton('leftBtn', () => {
+                    this.turningLeft = true;
+                    document.getElementById('leftBtn').classList.add('pressed');
+                }, () => {
+                    this.turningLeft = false;
+                    document.getElementById('leftBtn').classList.remove('pressed');
+                    this.queueCommand([0x01, 3, 0]); // Стоп поворота
+                });
+
+                // Поворот вправо
+                this.addMoveButton('rightBtn', () => {
+                    this.turningRight = true;
+                    document.getElementById('rightBtn').classList.add('pressed');
+                }, () => {
+                    this.turningRight = false;
+                    document.getElementById('rightBtn').classList.remove('pressed');
+                    this.queueCommand([0x01, 4, 0]); // Стоп поворота
+                });
+
+                // Полноэкранный режим
                 document.addEventListener('touchstart', () => {
                     if (document.documentElement.requestFullscreen && !document.fullscreenElement) {
                         document.documentElement.requestFullscreen().catch(() => { });
                     }
                 }, { once: true });
+            }
+
+            addMoveButton(btnId, onPress, onRelease) {
+                const btn = document.getElementById(btnId);
+                btn.addEventListener('touchstart', (e) => {
+                    e.preventDefault();
+                    onPress();
+                });
+                btn.addEventListener('touchend', (e) => {
+                    e.preventDefault();
+                    onRelease();
+                });
+                btn.addEventListener('mousedown', onPress);
+                btn.addEventListener('mouseup', onRelease);
+                btn.addEventListener('mouseleave', onRelease);
+            }
+
+            startMovementSender() {
+                // Постоянная отправка команд движения
+                setInterval(() => {
+                    if (!this.isConnected) return;
+
+                    // Приоритеты движения
+                    if (this.movingBack) {
+                        this.queueCommand([0x01, 2, 1]);
+                    } else if (this.turningLeft) {
+                        this.queueCommand([0x01, 3, 1]);
+                    } else if (this.turningRight) {
+                        this.queueCommand([0x01, 4, 1]);
+                    } else if (this.movingForward) {
+                        this.queueCommand([0x01, 1, 1]);
+                    }
+                }, 200); // Каждые 200мс
+            }
+
+            startCommandProcessor() {
+                // Обработчик очереди команд
+                setInterval(async () => {
+                    if (this.isSending || this.commandQueue.length === 0) return;
+
+                    this.isSending = true;
+                    const cmd = this.commandQueue.shift();
+
+                    try {
+                        if (this.characteristic && this.isConnected) {
+                            await this.characteristic.writeValue(new Uint8Array(cmd));
+                        }
+                    } catch (error) {
+                        console.error('Ошибка отправки:', error);
+                    }
+
+                    this.isSending = false;
+                }, 50); // Проверка каждые 50мс
+            }
+
+            queueCommand(cmd) {
+                // Для команд движения заменяем последнюю
+                if (cmd[0] === 0x01) {
+                    this.commandQueue = this.commandQueue.filter(c => c[0] !== 0x01);
+                }
+                this.commandQueue.push(cmd);
+            }
+
+            sendSpeed() {
+                const buffer = new ArrayBuffer(5);
+                const view = new DataView(buffer);
+                view.setUint8(0, 0x02);
+                view.setFloat32(1, this.currentSpeed, true);
+                const array = new Uint8Array(buffer);
+                this.queueCommand(Array.from(array));
             }
 
             async toggleConnection() {
@@ -347,12 +475,16 @@
                     this.characteristic = await service.getCharacteristic(this.CHAR_UUID);
 
                     this.isConnected = true;
+
                     document.getElementById('connectButton').classList.add('connected');
                     document.getElementById('connectButton').textContent = 'Отключить';
                     document.getElementById('status').textContent = 'Подключено';
 
-                    this.sendSpeed();
-                    this.sendPower();
+                    // Отправляем начальные настройки
+                    setTimeout(() => {
+                        this.sendSpeed();
+                        this.queueCommand([0x04, this.currentPower]);
+                    }, 500);
 
                     this.device.addEventListener('gattserverdisconnected', () => {
                         this.onDisconnected();
@@ -360,6 +492,7 @@
 
                 } catch (error) {
                     console.error('Ошибка подключения:', error);
+                    alert('Не удалось подключиться');
                 }
             }
 
@@ -372,59 +505,21 @@
 
             onDisconnected() {
                 this.isConnected = false;
+                this.movingForward = false;
+                this.movingBack = false;
+                this.turningLeft = false;
+                this.turningRight = false;
+
                 document.getElementById('connectButton').classList.remove('connected');
                 document.getElementById('connectButton').textContent = 'Подключить';
                 document.getElementById('status').textContent = 'Не подключено';
                 document.getElementById('forwardBtn').classList.remove('active');
-                this.isMovingForward = false;
-            }
 
-            toggleHeat() {
-                const button = document.getElementById('heatButton');
-                const isActive = button.classList.toggle('active');
-
-                if (isActive && navigator.vibrate) {
-                    navigator.vibrate(50);
-                }
-
-                this.sendCommand(new Uint8Array([0x03, isActive ? 1 : 0]));
-            }
-
-            sendMovement(action, param) {
-                this.sendCommand(new Uint8Array([0x01, action, param]));
-            }
-
-            sendSpeed() {
-                const buffer = new ArrayBuffer(5);
-                const view = new DataView(buffer);
-                view.setUint8(0, 0x02);
-                view.setFloat32(1, this.currentSpeed, true);
-                this.sendCommand(new Uint8Array(buffer));
-            }
-
-            sendPower() {
-                this.sendCommand(new Uint8Array([0x04, this.currentPower]));
-            }
-
-            async sendCommand(data) {
-                if (!this.characteristic || !this.isConnected) return;
-
-                try {
-                    await this.characteristic.writeValue(data);
-                } catch (error) {
-                    console.error('Ошибка отправки:', error);
-                }
+                this.commandQueue = [];
             }
         }
 
-        function changeSpeed(delta) {
-            const input = document.getElementById('speedInput');
-            let newValue = parseFloat(input.value) + delta;
-            newValue = Math.max(1, Math.min(200, newValue));
-            input.value = newValue;
-            input.dispatchEvent(new Event('change'));
-        }
-
+        // Запуск
         document.addEventListener('DOMContentLoaded', () => {
             new RobotController();
         });
